@@ -1,0 +1,33 @@
+--主机上创建数据导入目录
+mkdir -pv /u01/app/oracle/oraldr
+
+--数据库中建立目录链接
+sqlplus / as sysdba
+SQL> create directory oraInput as '/u01/app/oracle/oraldr';
+SQL> grant read,write on directory oraldr to usr;
+SQL> alter table MDTRT_D nologging;
+SQL> alter table SELT_D nologging;
+SQL> alter table FEE_LIST_D nologging;
+SQL> alter table SETL_LIST_DIAG_D nologging;
+SQL> alter table SETL_LIST_OPRN_D nologging;
+
+--拷贝数据文件到目录中
+scp ~/<some dir>/MDTRT_D.csv user@remote_host:/u01/app/oracle/oraldrt/loaddata.csv
+--scp ~/<some dir>/SELT_D.csv user@remote_host:/u01/app/oracle/oraldr/loaddata.csv
+--scp ~/<some dir>/FEE_LIST_D.csv user@remote_host:/u01/app/oracle/oraldr/loaddata.csv
+--scp ~/<some dir>/SETL_LIST_DIAG_D.csv user@remote_host:/u01/app/oracle/oraldr/loaddata.csv
+--scp ~/<some dir>/SETL_LIST_OPRN_D.csv user@remote_host:/u01/app/oracle/oraldrt/loaddata.csv
+
+--拷贝控制文件到目录中
+scp ~/<some dir>/MDTRT_D.ctl user@remote_host:/u01/app/oracle/oraldr/loaddata.ctl
+--scp ~/<some dir>/SELT_D.ctl user@remote_host:/u01/app/oracle/oraldr/loaddata.ctl
+--scp ~/<some dir>/FEE_LIST_D.ctl user@remote_host:/u01/app/oracle/oraldr/loaddata.ctl
+--scp ~/<some dir>/SETL_LIST_DIAG_D.ctl user@remote_host:/u01/app/oracle/oraldr/loaddata.ctl
+--scp ~/<some dir>/SETL_LIST_OPRN_D.ctl user@remote_host:/u01/app/oracle/oraldr/loaddata.ctl
+
+--设置连接字符集(可选)
+--export NLS_LANG="SIMPLIFIED CHINESE_CHINA".ZHS16GBK
+--export NLS_LANG=AMERICAN_AMERIC.AL32UTF8
+
+--导入数据
+sqlldr usr/abc@localhost:1521/orcl control=loaddata.ctl
