@@ -7,7 +7,7 @@
 
 --*******************************************************************************************--
 --预备脚本：创建操作项目临时表
-create global temporary table 临时_计费项目 as 
+create  table 临时_计费项目 NOLOGGING as 
 select a.机构编码,a.名称,a.身份证号,a.日期,sum(a.人次) 人次,b.从项编码 诊疗编码
 from 统计_门诊频度 a inner join 规则_诊疗加收 b on upper(a.代码) like b.主项编码 || '%'
 where a.类别 not in ('西药费','成药费','草药费','材料费')

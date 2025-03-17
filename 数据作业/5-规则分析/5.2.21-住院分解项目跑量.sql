@@ -6,7 +6,7 @@
 **********************************************************************************************/
 
 --脚本：创建操作项目临时表
-create global temporary table 临时_计费项目 as 
+create  table 临时_计费项目 NOLOGGING as 
 select a.机构编码,a.名称,a.身份证号,a.日期,sum(a.人次) 人次,b.分项编码 诊疗编码,b.分项名称 诊疗名称
 from 统计_住院频度 a inner join 规则_诊疗分解 b on regexp_instr(upper(a.代码),b.分项编码) > 0 and regexp_instr(a.名称,b.主项名称) > 0
 where a.机构编码 = 'H00000000000' and a.类别 not in ('西药费','成药费','草药费','材料费')
@@ -45,7 +45,7 @@ commit;
 drop table 临时_计费项目 purge;
 
 --脚本：创建材料项目临时表
-create global temporary table 临时_计费项目 as 
+create  table 临时_计费项目 NOLOGGING as 
 select a.机构编码,a.名称,a.身份证号,a.日期,sum(a.人次) 人次,b.分项编码,b.分项名称
 from 统计_住院频度 a inner join 规则_材料分解 b on regexp_instr(upper(a.代码),b.分项编码) > 0 and regexp_instr(a.名称,b.主项名称) > 0
 where a.机构编码 = 'H00000000000' and a.类别 in ('材料费')

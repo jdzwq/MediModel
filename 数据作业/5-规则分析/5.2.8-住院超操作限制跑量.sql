@@ -6,7 +6,7 @@
 **********************************************************************************************/
 
 --脚本：先创建一个操作项目的临时表
-create global temporary table 临时_计费项目 as
+create  table 临时_计费项目 NOLOGGING as
 select distinct a.机构编码, a.身份证号, a.住院日期, a.名称, a.日期, t.药品编码 from 统计_住院频度 a 
 inner join 规则_药品限制 t on t.操作限制 is not null and regexp_instr(nvl(a.名称,'@'), t.操作限制) > 0
 where a.机构编码 = 'H00000000000' and a.类别 not in ('西药费','成药费','草药费','材料费');
