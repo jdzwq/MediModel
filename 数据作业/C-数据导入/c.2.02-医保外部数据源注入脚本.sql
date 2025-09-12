@@ -1,7 +1,7 @@
 /*********************************************************************************************
 脚本说明：以下脚本仅用于演示如何从外部数据源中检出机构导入表数据，运行时请替换实际的机构编码和机构名称
 机构编码：H00000000000
-机构名称：富阳东吴医院
+机构名称：测试医院
 **********************************************************************************************/
 
 --第一个阶段：从外源数据库中检出数据并注入到本地医保临时表中
@@ -181,19 +181,19 @@ COMMIT;
 
 --脚本：编录一条机构摘要数据
 --说明：以下脚本仅用于演示，需根据实际情况修改
-DELETE FROM 富阳东吴医院_机构摘要;
+DELETE FROM 测试医院_机构摘要;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_机构摘要 (机构编码,机构名称,机构性质,机构等级,机构类型,核定床位,定点开始日期,定点停止日期)
-VALUES ('H33011100246','富阳东吴医院','综合医院','一级','私营',200,to_date('2024-01-01','YYYY-MM-DD'),to_date('2024-12-31','YYYY-MM-DD'));
+INSERT INTO 测试医院_机构摘要 (机构编码,机构名称,机构性质,机构等级,机构类型,核定床位,定点开始日期,定点停止日期)
+VALUES ('H33011100246','测试医院','综合医院','一级','私营',200,to_date('2024-01-01','YYYY-MM-DD'),to_date('2024-12-31','YYYY-MM-DD'));
 COMMIT;
 
 --脚本：从医保临时表中检出数据并注入到机构门诊就医表
 --说明：请先确定本地医保临时表可用后，再执行以下脚本
-DELETE FROM 富阳东吴医院_门诊就医;
+DELETE FROM 测试医院_门诊就医;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_门诊就医
+INSERT INTO 测试医院_门诊就医
 SELECT 
 	substr(a.fixmedins_code,1,50) as 机构编码,
 	substr(a.fixmedins_name,1,100) as 机构名称,
@@ -248,8 +248,8 @@ and a.med_type NOT IN ('21','210104','52')
 group by b.MDTRT_ID;
 
 begin
-	for cur in (select a.rowid,b.DIAG_LIST from 富阳东吴医院_门诊就医 a inner join 临时_门诊诊断 b on a.门诊号 = b.MDTRT_ID) loop
-		update 富阳东吴医院_门诊就医 set 次要诊断组合 = substr(cur.DIAG_LIST,1,500) where rowid = cur.rowid;
+	for cur in (select a.rowid,b.DIAG_LIST from 测试医院_门诊就医 a inner join 临时_门诊诊断 b on a.门诊号 = b.MDTRT_ID) loop
+		update 测试医院_门诊就医 set 次要诊断组合 = substr(cur.DIAG_LIST,1,500) where rowid = cur.rowid;
 	end loop;
 	commit;
 end;
@@ -258,10 +258,10 @@ drop table 临时_门诊诊断 purge;
 
 --脚本：从医保临时表中检出数据并注入到机构门诊结算表
 --说明：请先确定本地医保临时表可用后，再执行以下脚本
-DELETE FROM 富阳东吴医院_门诊结算;
+DELETE FROM 测试医院_门诊结算;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_门诊结算
+INSERT INTO 测试医院_门诊结算
 select 
 	substr(a.fixmedins_code,1,50) as 机构编码,
 	substr(a.fixmedins_name,1,100) as 机构名称,
@@ -325,10 +325,10 @@ commit;
 
 --脚本：从医保临时表中检出数据并注入到机构门诊手术表
 --说明：请先确定本地医保临时表可用后，再执行以下脚本
-DELETE FROM 富阳东吴医院_门诊手术;
+DELETE FROM 测试医院_门诊手术;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_门诊手术
+INSERT INTO 测试医院_门诊手术
 SELECT 
 	substr(a.fixmedins_code,1,50) as 机构编码,
 	substr(a.fixmedins_name,1,100) as 机构名称,
@@ -360,10 +360,10 @@ commit;
 
 --脚本：从医保临时表中检出数据并注入到机构门诊麻醉表
 --说明：请先确定本地医保临时表可用后，再执行以下脚本
-DELETE FROM 富阳东吴医院_门诊麻醉;
+DELETE FROM 测试医院_门诊麻醉;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_门诊麻醉
+INSERT INTO 测试医院_门诊麻醉
 SELECT 
 	substr(a.fixmedins_code,1,50) as 机构编码,
 	substr(a.fixmedins_name,1,100) as 机构名称,
@@ -394,10 +394,10 @@ commit;
 
 --脚本：从医保临时表中检出数据并注入到机构住院就医表
 --说明：请先确定本地医保临时表可用后，再执行以下脚本
-DELETE FROM 富阳东吴医院_住院就医;
+DELETE FROM 测试医院_住院就医;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_住院就医
+INSERT INTO 测试医院_住院就医
 SELECT 
 	substr(a.fixmedins_code,1,50) as 机构编码,
 	substr(a.fixmedins_name,1,100) as 机构名称,
@@ -453,8 +453,8 @@ and a.med_type IN ('21','210104','52')
 group by b.MDTRT_ID;
 
 begin
-	for cur in (select a.rowid,b.DIAG_LIST from 富阳东吴医院_住院就医 a inner join 临时_住院诊断 b on a.住院号 = b.MDTRT_ID) loop
-		update 富阳东吴医院_住院就医 set 次要诊断组合 = substr(cur.DIAG_LIST,1,500) where rowid = cur.rowid;
+	for cur in (select a.rowid,b.DIAG_LIST from 测试医院_住院就医 a inner join 临时_住院诊断 b on a.住院号 = b.MDTRT_ID) loop
+		update 测试医院_住院就医 set 次要诊断组合 = substr(cur.DIAG_LIST,1,500) where rowid = cur.rowid;
 	end loop;
 	commit;
 end;
@@ -464,10 +464,10 @@ drop table 临时_住院诊断 purge;
 
 --脚本：从医保临时表中检出数据并注入到机构住院结算表
 --说明：请先确定本地医保临时表可用后，再执行以下脚本
-DELETE FROM 富阳东吴医院_住院结算;
+DELETE FROM 测试医院_住院结算;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_住院结算
+INSERT INTO 测试医院_住院结算
 select 
 	substr(a.fixmedins_code,1,50) as 机构编码,
 	substr(a.fixmedins_name,1,100) as 机构名称,
@@ -531,10 +531,10 @@ commit;
 
 --脚本：从医保临时表中检出数据并注入到机构住院手术表
 --说明：请先确定本地医保临时表可用后，再执行以下脚本
-DELETE FROM 富阳东吴医院_住院手术;
+DELETE FROM 测试医院_住院手术;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_住院手术
+INSERT INTO 测试医院_住院手术
 SELECT 
 	substr(a.fixmedins_code,1,50) as 机构编码,
 	substr(a.fixmedins_name,1,100) as 机构名称,
@@ -566,10 +566,10 @@ commit;
 
 --脚本：从医保临时表中检出数据并注入到机构住院麻醉表
 --说明：请先确定本地医保临时表可用后，再执行以下脚本
-DELETE FROM 富阳东吴医院_住院麻醉;
+DELETE FROM 测试医院_住院麻醉;
 COMMIT;
 
-INSERT INTO 富阳东吴医院_住院麻醉
+INSERT INTO 测试医院_住院麻醉
 SELECT 
 	substr(a.fixmedins_code,1,50) as 机构编码,
 	substr(a.fixmedins_name,1,100) as 机构名称,

@@ -103,6 +103,14 @@ CREATE TABLE 字典_常用药品 (
 	产地厂家 VARCHAR2(200) NULL
 );
 
+--[领域标识表]******************************************************--
+--说明：用于编录领域标识
+CREATE TABLE 字典_领域标识 (
+    国标编码 VARCHAR2(50) NULL, 
+	领域标识 VARCHAR2(100) NULL, 
+	来源标识 VARCHAR2(50) NULL
+);
+
 --[药品限制表]******************************************************--
 --说明：用于限定药品使用范围
 --险种限制：['工伤','生育']
@@ -118,12 +126,13 @@ CREATE TABLE 规则_药品限制(
   险种限制 VARCHAR2(50) NULL,
   机构限制 VARCHAR2(50)  NULL, 
   就医限制 VARCHAR2(50)  NULL,
-  专科限制 VARCHAR2(50)  NULL,
+  专科限制 VARCHAR2(500)  NULL,
   性别限制 VARCHAR2(50)  NULL,
   年龄限制 VARCHAR2(50)  NULL,   --年龄上界（包含）
   疾病限制 VARCHAR2(1000) NULL,   --疾病名称（关键词）
+  操作限制 VARCHAR2(1000) NULL,   --操作名称（关键词）
   阶梯限制 VARCHAR2(50)  NULL,
-  用量限制 INTEGER NULL,         --单次最大用量
+  用量限制 NUMERIC(18,2),         --单次最大用量
   额度限制 NUMERIC(18,2) NULL,   --年度的额度上限
   疗程限制 INTEGER NULL,         --疗程最大天数
   领域标识 VARCHAR2(50) NULL
@@ -154,10 +163,11 @@ CREATE TABLE 规则_诊疗限制(
   险种限制 VARCHAR2(50)  NULL, 
   机构限制 VARCHAR2(50)  NULL, 
   就医限制 VARCHAR2(50)  NULL,
-  专科限制 VARCHAR2(50)  NULL,
+  专科限制 VARCHAR2(500)  NULL,
   性别限制 VARCHAR2(50)  NULL,
   年龄限制 VARCHAR2(50)  NULL,   --年龄上界（包含）
   疾病限制 VARCHAR2(1000) NULL,  --疾病名称（关键词）
+  操作限制 VARCHAR2(1000) NULL,   --操作名称（关键词）
   人次限制 INTEGER NULL,         --单次就诊的人次上限
   次数限制 INTEGER NULL,         --单日的次数上限
   数量限制 NUMERIC(18,2) NULL,   --单日的数量上限
@@ -237,6 +247,16 @@ CREATE TABLE 规则_诊疗重复 (
   子项编码 VARCHAR2(500) NULL,
   子项名称 VARCHAR2(1000) NULL,   --属于主项操作的小类、部分或子项操作
   领域标识 VARCHAR2(50) NULL
+);
+
+--[诊疗重复表]******************************************************--
+--说明：用于匹配诊疗同组项目
+CREATE TABLE 规则_诊疗主次 (	
+    主项编码 VARCHAR2(50 BYTE), 
+	主项名称 VARCHAR2(200 BYTE), 
+	主次组别 VARCHAR2(50 BYTE), 
+	主次折率 numeric(10,2),  
+	领域标识 VARCHAR2(50 BYTE)
 );
 
 --[材料关联表]******************************************************--

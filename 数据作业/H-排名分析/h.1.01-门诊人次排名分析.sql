@@ -1,12 +1,12 @@
 /*********************************************************************************************
 脚本说明：以下脚本用于分析门诊就医人数、人次、费用等排名，运行时应替换实际机构代码和名称
-机构编码：H33018205257
-机构名称：洋溪卫生服务中心
+机构编码：H00000000000
+机构名称：测试医院
 **********************************************************************************************/
 
 -----------------------------------------------------------------------------------------------
 --脚本：确定就医年度分段
-select distinct to_char(门诊日期,'YYYY') 就医年度  from 统计_门诊诊次 where 机构编码 = 'H33018205257'
+select distinct to_char(门诊日期,'YYYY') 就医年度  from 统计_门诊诊次 where 机构编码 = 'H00000000000'
 order by 就医年度
 
 -----------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ select
     count(distinct 身份证号 || to_char(门诊日期,'YYYYMMDD')) 就医人次,
     count(distinct 身份证号 || to_char(门诊日期,'YYYYMM')) 就医月数,
     round(count(distinct 身份证号 || to_char(门诊日期,'YYYYMMDD')) / count(distinct 身份证号 || to_char(门诊日期,'YYYYMM')),1) 人月人次
-from 统计_门诊诊次 where 机构编码 = 'H33018205257'
+from 统计_门诊诊次 where 机构编码 = 'H00000000000'
 --and regexp_instr(门诊科室,'测试科室') > 0
 group by 机构名称,姓名,身份证号,持证类别
 order by 人月人次 desc
@@ -43,7 +43,7 @@ select
     sum(金额) 金额,
     count(distinct 身份证号 || to_char(门诊日期,'YYYYMM')) 人月数,
     round(sum(人次) / count(distinct 身份证号 || to_char(门诊日期,'YYYYMM')),1) 人月人次
-from 统计_门诊频度 a where 机构编码 = 'H33018205257'
+from 统计_门诊频度 a where 机构编码 = 'H00000000000'
 --and exists (select 1 from 统计_门诊诊次 b where a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期 and regexp_instr(b.门诊科室,'测试科室') > 0)
 --and 类别 in ('西药费')
 --and 类别 in ('成药费')
@@ -61,4 +61,4 @@ order by 人次 desc
 ) a where rownum <=100;
 
 
-select distinct 类别 from 统计_门诊频度 where 机构编码 = 'H33018205257'
+select distinct 类别 from 统计_门诊频度 where 机构编码 = 'H00000000000'
