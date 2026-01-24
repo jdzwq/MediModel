@@ -2,6 +2,7 @@
 脚本说明：以下脚本用于生成门诊结构、频度数据，运行时机构编码和机构数据表名称请注意替换成为实际机构
 机构编码：H00000000000
 机构名称：测试医院
+结算年度: 2023
 **********************************************************************************************/
 
 --*******************************************************************************************--
@@ -11,12 +12,14 @@ commit;
 
 INSERT INTO 统计_门诊诊次 (机构等级, 机构编码, 机构名称, 姓名, 性别, 年龄, 身份证号, 险种类别, 持证类别, 
     门诊日期, 门诊天数, 门诊科室, 门诊医生, 疾病诊断, 次要诊断, 医疗诊次, 医疗金额, 列支金额, 基金支付, 个账支付, 现金支付) 
-select 机构等级，机构编码, 机构名称, 姓名, 性别, 年龄, 身份证号, 险种类别, 持证类别, 门诊日期, 门诊天数,
+select 机构等级，机构编码, 机构名称, 姓名, 性别, 年龄, 身份证号, 险种类别, 持证类别, 
+    门诊日期,
+    count(distinct a.身份证号 || to_char(支付日期,'YYYYMMDD')) 门诊天数,
     listagg(a.门诊科室,'、') within group(order by a.门诊日期) 门诊科室, 
     listagg(a.门诊医生,'、') within group(order by a.门诊日期) 门诊医生,
     listagg(a.疾病诊断,'、') within group(order by a.门诊日期) 疾病诊断,
     listagg(a.次要诊断,'、') within group(order by a.门诊日期) 次要诊断,
-    count(distinct a.身份证号 || to_char(门诊日期,'YYYYMMDD')) 医疗诊次,
+    count(distinct a.身份证号 || to_char(支付日期,'YYYYMMDDHH24')) 医疗诊次,
     sum(医疗金额) 医疗金额,
     sum(列支金额) 列支金额,
     sum(基金支付) 基金支付,
@@ -26,7 +29,8 @@ from(
 SELECT 机构等级，机构编码, 机构名称, 姓名, 性别, 
     case when 年龄 < 7 then '婴幼儿' when 年龄 < 15 then '少年儿童' when 年龄 < 65 then '劳动人口' else '老年人口' end 年龄, 
     身份证号, 险种类别, 持证类别, 
-    trunc(门诊日期) 门诊日期, 1 门诊天数, 
+    '2023-01-01' 门诊日期, 
+    结算日期 支付日期,
     门诊科室, 门诊医生, 疾病诊断, 次要诊断,
     医疗金额,
     列支金额,
@@ -35,7 +39,7 @@ SELECT 机构等级，机构编码, 机构名称, 姓名, 性别,
     现金支付
 FROM 负荷_门诊就医 where 机构编码 = 'H00000000000'
 ) a
-group by 机构等级, 机构编码, 机构名称, 姓名, 性别, 年龄, 身份证号, 险种类别, 持证类别, 门诊日期, 门诊天数
+group by 机构等级, 机构编码, 机构名称, 姓名, 性别, 年龄, 身份证号, 险种类别, 持证类别, 门诊日期
 having sum(医疗金额) <> 0;
 commit;
 
@@ -48,8 +52,8 @@ commit;
 insert into 统计_门诊频度(机构编码, 机构名称, 人员姓名, 身份证号, 门诊日期, 代码, 类别, 属性, 
     名称, 规格, 诊次, 人次, 频次, 天数, 剂量, 数量, 单位, 单价, 金额, 列支, 日期)
 select 机构编码, 机构名称, 人员姓名, 身份证号, 门诊日期, 代码, 类别, 属性,名称, 规格,
-    count(distinct 身份证号 || to_char(日期,'YYYYMMDD') || 时段) as 诊次,
-    count(distinct 身份证号 || to_char(日期,'YYYYMMDD')) as 人次,
+    count(distinct 身份证号 || to_char(支付日期,'YYYYMMDD')) as 诊次,
+    count(distinct 身份证号 || to_char(日期,'YYYYMMDD') || 时段) as 人次,
     round(avg(次数),0) 频次,
     sum(天数) 天数,
     sum(剂量) 剂量,
@@ -60,7 +64,8 @@ select 机构编码, 机构名称, 人员姓名, 身份证号, 门诊日期, 代
     日期
 from(
 select b.机构编码,b.机构名称,b.姓名 人员姓名,b.身份证号,
-    trunc(b.门诊日期) 门诊日期,
+    '2023-01-01' 门诊日期, 
+    b.结算日期 支付日期,
     upper(substr(a.国标代码,1,15)) 代码,
     a.收费项目类别 类别,
     a.医疗属性类别 属性,
@@ -96,8 +101,8 @@ alter index 索引_统计_门诊频度 rebuild;
 delete from 统计_门诊结构 where 机构编码 = 'H00000000000';
 commit;
 
-INSERT INTO 统计_门诊结构 (机构编码, 机构名称, 身份证号, 人员姓名, 门诊日期, 门诊天数)
-SELECT 机构编码, 机构名称, 身份证号, 姓名, 门诊日期, 门诊天数
+INSERT INTO 统计_门诊结构 (机构编码, 机构名称, 身份证号, 人员姓名, 门诊日期, 门诊天数, 门诊诊次)
+SELECT 机构编码, 机构名称, 身份证号, 姓名, 门诊日期, 门诊天数, 医疗诊次
 FROM 统计_门诊诊次 WHERE 机构编码 = 'H00000000000';
 COMMIT;
 
@@ -113,9 +118,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('诊查费','挂号费','会诊费','巡诊费') group by a.rowid)loop
@@ -123,9 +126,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('护理费','注射费') group by a.rowid)loop
@@ -133,9 +134,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('化验费','病理费') group by a.rowid)loop
@@ -143,9 +142,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('检查费') group by a.rowid)loop
@@ -153,9 +150,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('吸氧费','抢救费','急救费','一般诊疗费') group by a.rowid)loop
@@ -163,9 +158,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期   
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('手术费','麻醉费')group by a.rowid )loop
@@ -173,9 +166,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('介入治疗费') group by a.rowid )loop
@@ -183,9 +174,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('放射治疗费') group by a.rowid )loop
@@ -193,9 +182,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('物理治疗费') group by a.rowid )loop
@@ -203,9 +190,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('中医治疗费','中医论治费') group by a.rowid )loop
@@ -213,9 +198,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('康复治疗费') group by a.rowid )loop
@@ -223,9 +206,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('精神治疗费') group by a.rowid )loop
@@ -233,9 +214,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('西药费') group by a.rowid )loop
@@ -243,9 +222,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('成药费') group by a.rowid )loop
@@ -253,9 +230,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('草药费') group by a.rowid )loop
@@ -263,9 +238,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('材料费') group by a.rowid )loop
@@ -273,9 +246,7 @@ begin
      where rowid = cur.rowid;
     end loop;
   commit;
-end;
 
-begin
   for cur in (select a.rowid, sum(b.金额) 金额,sum(b.列支) 列支,SUM(b.数量) 数量,count(distinct 名称) 项数,sum(频次) 次数
      from 统计_门诊结构 A inner join 统计_门诊频度 B on A.机构编码 = B.机构编码 AND A.身份证号 = B.身份证号 and A.门诊日期 = B.门诊日期
      WHERE a.机构编码 = 'H00000000000' AND b.类别 IN ('其他服务费','体检费','疫苗费') group by a.rowid )loop

@@ -4,7 +4,7 @@ mkdir -pv /u01/app/oracle/oraldr
 --数据库中建立目录链接
 sqlplus / as sysdba
 SQL> create directory oraInput as '/u01/app/oracle/oraldr';
-SQL> grant read,write on directory oraldr to usr;
+SQL> grant read,write on directory oraldr to hosp;
 SQL> alter table usr.MDTRT_D nologging;
 SQL> alter table usr.SELT_D nologging;
 SQL> alter table usr.FEE_LIST_D nologging;
@@ -30,4 +30,4 @@ scp ~/<some dir>/MDTRT_D.ctl host_user@remote_host:/u01/app/oracle/oraldr/loadda
 --export NLS_LANG=AMERICAN_AMERIC.AL32UTF8
 
 --导入数据
-sqlldr usr/abc@localhost:1521/orcl control=loaddata.ctl
+sqlldr hosp/abc@localhost:1521/orcl control=loaddata.ctl
