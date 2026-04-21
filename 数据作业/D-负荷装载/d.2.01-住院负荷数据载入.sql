@@ -5,6 +5,11 @@
 导入表名：测试医院_<导入表名>
 **********************************************************************************************/
 
+--*******************************************************************************************--
+--脚本：创建数据链接
+--create database link hosp_link connect to hosp identified by abc 
+--using '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ordw)))';
+
 delete from 负荷_机构摘要 where 机构编码 = 'H00000000000';
 commit;
 

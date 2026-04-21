@@ -14,7 +14,7 @@ drop table 临时_计费项目 purge;
 --背景：存在的分解项目且当日计次大于1
 create  table 临时_计费项目 NOLOGGING as 
 select distinct a.机构编码,a.身份证号,a.日期,sum(a.诊次) 人次,分项编码 材料编码,分项名称 材料名称
-from 统计_门诊频度 a inner join 规则_项目分解 t on regexp_instr(a.代码,t.分项编码) > 0 and regexp_instr(a.名称,t.分项名称) > 0
+from 模型_门诊频度 a inner join 规则_项目分解 t on regexp_instr(a.代码,t.分项编码) > 0 and regexp_instr(a.名称,t.分项名称) > 0
     and t.来源标识 = '材料' --and regexp_instr(t.领域标识,'(康复|物理|中医)') > 0
 where a.机构编码 = 'H00000000000' and a.类别 in ('材料费')
 group by a.机构编码,a.身份证号,a.日期,分项编码,分项名称
@@ -22,12 +22,12 @@ having sum(a.诊次) > 1;
 
 create index 索引_临时_计费项目 on 临时_计费项目 (机构编码,身份证号,日期);
 
-delete from 应用_问题线索 where 机构编码 = 'H00000000000' and 就医来源 = '门诊' and 项目来源 = '材料' 
+delete from 线索_问题项目 where 机构编码 = 'H00000000000' and 就医来源 = '门诊' and 项目来源 = '材料' 
     and 线索来源 = '规则分析' and 问题类型 = '材料分解计费';
 commit;
 
 --筛选：在背景分项目中出现的项目
-insert into 应用_问题线索 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
+insert into 线索_问题项目 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
     机构编码, 机构名称, 科室名称, 医生姓名, 身份证号, 姓名, 性别, 年龄, 就医日期, 就医天数, 疾病诊断, 分类, 代码,
     名称, 规格, 单位, 单价, 人次, 天数, 频次, 剂量, 数量, 医疗金额, 医保支付, 支付日期)
 select distinct
@@ -41,7 +41,7 @@ select distinct
     列支 问题金额,
     h.机构编码, h.机构名称,h.门诊科室, h.门诊医生, h.身份证号, h.姓名, h.性别, h.年龄, h.门诊日期, h.门诊天数, h.疾病诊断,
     类别, 代码, 名称, 规格, 单位, 单价, 诊次, 天数, 频次, 剂量, 数量, 金额, 列支, 日期
-from 统计_门诊诊次 h inner join 统计_门诊频度 g on h.机构编码 = g.机构编码 and h.身份证号 = g.身份证号 and h.门诊日期 = g.门诊日期
+from 模型_门诊诊次 h inner join 模型_门诊频度 g on h.机构编码 = g.机构编码 and h.身份证号 = g.身份证号 and h.门诊日期 = g.门诊日期
     and h.机构编码 = 'H00000000000' and g.类别 in ('材料费')  
 inner join 规则_项目分解 t on regexp_instr(g.代码, t.分项编码) > 0 and regexp_instr(g.名称, t.分项名称) > 0 --是分项项目
     and t.来源标识 = '材料' --and regexp_instr(t.领域标识,'(康复|物理|中医)') > 0
@@ -61,7 +61,7 @@ drop table 临时_计费项目 purge;
 --背景：存在的分解项目且当日计次大于1
 create  table 临时_计费项目 NOLOGGING as 
 select distinct a.机构编码,a.身份证号,a.日期,sum(a.诊次) 人次,分项编码 诊疗编码,分项名称 诊疗名称
-from 统计_门诊频度 a inner join 规则_项目分解 t on regexp_instr(a.代码,t.分项编码) > 0 and regexp_instr(a.名称,t.分项名称) > 0
+from 模型_门诊频度 a inner join 规则_项目分解 t on regexp_instr(a.代码,t.分项编码) > 0 and regexp_instr(a.名称,t.分项名称) > 0
     and t.来源标识 = '诊疗' --and regexp_instr(t.领域标识,'(康复|物理|中医)') > 0
 where a.机构编码 = 'H00000000000' and a.类别 not in ('西药费','成药费','草药费','材料费')
 group by a.机构编码,a.身份证号,a.日期,分项编码,分项名称
@@ -69,12 +69,12 @@ having sum(a.诊次) > 1;
 
 create index 索引_临时_计费项目 on 临时_计费项目 (机构编码,身份证号,日期);
 
-delete from 应用_问题线索 where 机构编码 = 'H00000000000' and 就医来源 = '门诊' and 项目来源 = '诊疗' 
+delete from 线索_问题项目 where 机构编码 = 'H00000000000' and 就医来源 = '门诊' and 项目来源 = '诊疗' 
     and 线索来源 = '规则分析' and 问题类型 = '诊疗分解计费';
 commit;
 
 --筛选：在背景分项目中出现的项目
-insert into 应用_问题线索 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
+insert into 线索_问题项目 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
     机构编码, 机构名称, 科室名称, 医生姓名, 身份证号, 姓名, 性别, 年龄, 就医日期, 就医天数, 疾病诊断, 分类, 代码,
     名称, 规格, 单位, 单价, 人次, 天数, 频次, 剂量, 数量, 医疗金额, 医保支付, 支付日期)
 select distinct
@@ -88,7 +88,7 @@ select distinct
     列支 问题金额,
     h.机构编码, h.机构名称,h.门诊科室, h.门诊医生, h.身份证号, h.姓名, h.性别, h.年龄, h.门诊日期, h.门诊天数, h.疾病诊断,
     类别, 代码, 名称, 规格, 单位, 单价, 诊次, 天数, 频次, 剂量, 数量, 金额, 列支, 日期
-from 统计_门诊诊次 h inner join 统计_门诊频度 g on h.机构编码 = g.机构编码 and h.身份证号 = g.身份证号 and h.门诊日期 = g.门诊日期
+from 模型_门诊诊次 h inner join 模型_门诊频度 g on h.机构编码 = g.机构编码 and h.身份证号 = g.身份证号 and h.门诊日期 = g.门诊日期
     and h.机构编码 = 'H00000000000' and g.类别 not in ('西药费','成药费','草药费','材料费') 
 inner join 规则_项目分解 t on regexp_instr(upper(g.代码), t.分项编码) > 0 and regexp_instr(g.名称, t.分项名称) > 0 --是分项
     and t.来源标识 = '诊疗' --and regexp_instr(t.领域标识,'(康复|物理|中医)') > 0

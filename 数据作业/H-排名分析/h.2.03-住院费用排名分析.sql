@@ -51,7 +51,7 @@ select to_char(a.住院日期,'YYYY') 就医年度,
     nvl(b.化验金额,0) + nvl(b.检查金额,0) 检查化验金额,
     round((nvl(b.化验金额,0) + nvl(b.检查金额,0)) / a.医疗金额,2) 检查化验占比,
     round((nvl(b.西药金额,0) + nvl(b.成药金额,0) + nvl(b.草药金额,0)) / a.医疗金额,2) 药品占比
-from 统计_住院诊次 a inner join 统计_住院结构 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.住院日期 = b.住院日期
+from 模型_住院诊次 a inner join 模型_住院结构 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.住院日期 = b.住院日期
 where a.机构编码 = 'H00000000000' 
 --and to_char(a.住院日期,'YYYY') = '2025'
 --and a.住院天数 < 3

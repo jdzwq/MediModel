@@ -13,7 +13,7 @@ select
     count(distinct 身份证号 || to_char(门诊日期,'YYYYMMDD')) 就医人次,
     count(distinct to_char(门诊日期,'YYYYMM')) 就医月数,
     round(count(distinct 身份证号 || to_char(门诊日期,'YYYYMMDD')) / count(distinct to_char(门诊日期,'YYYYMM')),1) 人月人次
-from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 --and regexp_instr(门诊科室,'测试科室') > 0
 group by 机构名称,姓名,身份证号,持证类别
 order by 人月人次 desc

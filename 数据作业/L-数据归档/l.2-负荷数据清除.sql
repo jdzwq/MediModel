@@ -6,35 +6,51 @@
 **********************************************************************************************/
 
 
---脚本：清除应用表
-delete from 应用_问题线索 where 机构编码 = 'H00000000000';
+--脚本：清除线索表
+delete from 线索_问题项目 where 机构编码 = 'H00000000000';
 commit;
 
-delete from 应用_病案遴选 where 机构编码 = 'H00000000000';
+delete from 线索_问题病案 where 机构编码 = 'H00000000000';
+commit;
+
+delete from 线索_问题特征 where 机构编码 = 'H00000000000';
 commit;
 --*******************************************************************************************--
 
---脚本：清除统计表
-delete from 统计_门诊结构 where 机构编码 = 'H00000000000';
+--脚本：清除模型表
+delete from 模型_门诊日期 where 机构编码 = 'H00000000000';
 commit;
 
-delete from 统计_门诊诊次 where 机构编码 = 'H00000000000';
+delete from 模型_门诊结构 where 机构编码 = 'H00000000000';
 commit;
 
-delete from 统计_门诊频度 where 机构编码 = 'H00000000000';
+delete from 模型_门诊诊次 where 机构编码 = 'H00000000000';
 commit;
 
-delete from 统计_住院结构 where 机构编码 = 'H00000000000';
+delete from 模型_门诊频度 where 机构编码 = 'H00000000000';
 commit;
 
-delete from 统计_住院诊次 where 机构编码 = 'H00000000000';
+delete from 模型_门诊人群 where 机构编码 = 'H00000000000';
 commit;
 
-delete from 统计_住院频度 where 机构编码 = 'H00000000000';
+delete from 模型_住院日期 where 机构编码 = 'H00000000000';
 commit;
 
-delete from 统计_库房进销 where 机构编码 = 'H00000000000';
+delete from 模型_住院结构 where 机构编码 = 'H00000000000';
 commit;
+
+delete from 模型_住院诊次 where 机构编码 = 'H00000000000';
+commit;
+
+delete from 模型_住院人群 where 机构编码 = 'H00000000000';
+commit;
+
+delete from 模型_住院频度 where 机构编码 = 'H00000000000';
+commit;
+
+delete from 模型_库房进销 where 机构编码 = 'H00000000000';
+commit;
+
 --*******************************************************************************************--
 
 --脚本：清除负荷表

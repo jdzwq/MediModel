@@ -10,12 +10,12 @@
 --脚本：用于频次限定诊疗的超范围支付的线索跑量
 
 --每日频次限制
-delete from 应用_问题线索 where 机构编码 = 'H00000000000' and 就医来源 = '门诊' and 项目来源 = '诊疗' 
+delete from 线索_问题项目 where 机构编码 = 'H00000000000' and 就医来源 = '门诊' and 项目来源 = '诊疗' 
     and 线索来源 = '规则分析' and 问题类型 = '超频次限定诊疗';
 commit;
 
 --每日频次限制
-insert into 应用_问题线索 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
+insert into 线索_问题项目 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
     机构编码, 机构名称, 科室名称, 医生姓名, 身份证号, 姓名, 性别, 年龄, 就医日期, 就医天数, 疾病诊断, 分类, 代码,
     名称, 规格, 单位, 单价, 人次, 天数, 频次, 剂量, 数量, 医疗金额, 医保支付, 支付日期)
 select distinct
@@ -32,7 +32,7 @@ select distinct
 from(
 select a.机构编码, a.机构名称, a.门诊科室, a.门诊医生, a.身份证号, a.姓名, a.性别, a.年龄, a.门诊日期, a.门诊天数, a.疾病诊断,
     b.类别, b.代码,b.名称, b.规格, b.单位, b.单价, b.日期, sum(b.诊次) 人次, sum(b.天数) 天数, sum(b.频次) 频次, sum(b.剂量) 剂量, sum(b.数量) 数量, sum(b.金额) 金额, sum(b.列支) 列支
-from 统计_门诊诊次 a inner join 统计_门诊频度 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期
+from 模型_门诊诊次 a inner join 模型_门诊频度 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期
     and a.机构编码 = 'H00000000000' and b.类别 not in ('西药费','成药费','草药费','材料费') 
 group by a.机构编码, a.机构名称, a.门诊科室, a.门诊医生, a.身份证号, a.姓名, a.性别, a.年龄, a.门诊日期, a.门诊天数, a.疾病诊断,
     b.类别, b.代码, b.名称, b.规格, b.单位, b.单价, b.日期
@@ -49,7 +49,7 @@ drop table 临时_计费项目 purge;
 
 create table 临时_计费项目 NOLOGGING as 
 select 机构编码, 身份证号, 门诊日期, 类别, 代码, 名称, 规格, 单位, 单价, to_char(日期,'YYYY') || TO_CHAR(TRUNC(日期), 'IW') 周次, sum(频次) 频次, to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 1)) 限制
-from 统计_门诊频度 a inner join 规则_诊疗限制 t on a.代码 like t.诊疗编码 || '%' and t.频次限制 like '%每周%'
+from 模型_门诊频度 a inner join 规则_诊疗限制 t on a.代码 like t.诊疗编码 || '%' and t.频次限制 like '%每周%'
 --and regexp_instr(t.领域标识,'(康复|物理|中医)') > 0
 where a.机构编码 = 'H00000000000' and a.类别 not in ('西药费','成药费','草药费','材料费') 
 group by 机构编码, 身份证号, 门诊日期, 类别, 代码, 名称, 规格, 单位, 单价, to_char(日期,'YYYY') || TO_CHAR(TRUNC(日期), 'IW'), to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 1))
@@ -57,7 +57,7 @@ having sum(频次) > to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 
 
 create index 索引_临时_计费项目 on 临时_计费项目 (机构编码,身份证号,周次);
 
-insert into 应用_问题线索 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
+insert into 线索_问题项目 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
     机构编码, 机构名称, 科室名称, 医生姓名, 身份证号, 姓名, 性别, 年龄, 就医日期, 就医天数, 疾病诊断, 分类, 代码,
     名称, 规格, 单位, 单价, 人次, 天数, 频次, 剂量, 数量, 医疗金额, 医保支付, 支付日期)
 select distinct
@@ -74,7 +74,7 @@ select distinct
 from(
 select a.机构编码, a.机构名称, a.门诊科室, a.门诊医生, a.身份证号, a.姓名, a.性别, a.年龄, a.门诊日期, a.门诊天数, a.疾病诊断,
     b.类别, b.代码,b.名称, b.规格, b.单位, b.单价, b.日期, sum(b.诊次) 人次, sum(b.天数) 天数, sum(b.频次) 频次, sum(b.剂量) 剂量, sum(b.数量) 数量, sum(b.金额) 金额, sum(b.列支) 列支
-from 统计_门诊诊次 a inner join 统计_门诊频度 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期
+from 模型_门诊诊次 a inner join 模型_门诊频度 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期
     and a.机构编码 = 'H00000000000' and b.类别 not in ('西药费','成药费','草药费','材料费') 
 group by a.机构编码, a.机构名称, a.门诊科室, a.门诊医生, a.身份证号, a.姓名, a.性别, a.年龄, a.门诊日期, a.门诊天数, a.疾病诊断,
     b.类别, b.代码, b.名称, b.规格, b.单位, b.单价, b.日期
@@ -93,7 +93,7 @@ drop table 临时_计费项目 purge;
 
 create table 临时_计费项目 NOLOGGING as 
 select 机构编码, 身份证号, 门诊日期, 类别, 代码, 名称, 规格, 单位, 单价, to_char(日期,'YYYYMM') 月次, sum(频次) 频次, to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 1)) 限制
-from 统计_门诊频度 a inner join 规则_诊疗限制 t on a.代码 like t.诊疗编码 || '%' and t.频次限制 like '%每月%'
+from 模型_门诊频度 a inner join 规则_诊疗限制 t on a.代码 like t.诊疗编码 || '%' and t.频次限制 like '%每月%'
 --and regexp_instr(t.领域标识,'(康复|物理|中医)') > 0
 where a.机构编码 = 'H00000000000' and a.类别 not in ('西药费','成药费','草药费','材料费') 
 group by 机构编码, 身份证号, 门诊日期, 类别, 代码, 名称, 规格, 单位, 单价, to_char(日期,'YYYYMM'), to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 1))
@@ -101,7 +101,7 @@ having sum(频次) > to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 
 
 create index 索引_临时_计费项目 on 临时_计费项目 (机构编码,身份证号,月次);
 
-insert into 应用_问题线索 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
+insert into 线索_问题项目 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
     机构编码, 机构名称, 科室名称, 医生姓名, 身份证号, 姓名, 性别, 年龄, 就医日期, 就医天数, 疾病诊断, 分类, 代码,
     名称, 规格, 单位, 单价, 人次, 天数, 频次, 剂量, 数量, 医疗金额, 医保支付, 支付日期)
 select distinct
@@ -118,7 +118,7 @@ select distinct
 from(
 select a.机构编码, a.机构名称, a.门诊科室, a.门诊医生, a.身份证号, a.姓名, a.性别, a.年龄, a.门诊日期, a.门诊天数, a.疾病诊断,
     b.类别, b.代码,b.名称, b.规格, b.单位, b.单价, b.日期, sum(b.诊次) 人次, sum(b.天数) 天数, sum(b.频次) 频次, sum(b.剂量) 剂量, sum(b.数量) 数量, sum(b.金额) 金额, sum(b.列支) 列支
-from 统计_门诊诊次 a inner join 统计_门诊频度 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期
+from 模型_门诊诊次 a inner join 模型_门诊频度 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期
     and a.机构编码 = 'H00000000000' and b.类别 not in ('西药费','成药费','草药费','材料费') 
 group by a.机构编码, a.机构名称, a.门诊科室, a.门诊医生, a.身份证号, a.姓名, a.性别, a.年龄, a.门诊日期, a.门诊天数, a.疾病诊断,
     b.类别, b.代码, b.名称, b.规格, b.单位, b.单价, b.日期
@@ -137,7 +137,7 @@ drop table 临时_计费项目 purge;
 
 create table 临时_计费项目 NOLOGGING as 
 select 机构编码, 身份证号, 门诊日期, 类别, 代码, 名称, 规格, 单位, 单价, to_char(日期,'YYYY') 年度, sum(频次) 频次, to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 1)) 限制
-from 统计_门诊频度 a inner join 规则_诊疗限制 t on a.代码 like t.诊疗编码 || '%' and t.频次限制 like '%每年%'
+from 模型_门诊频度 a inner join 规则_诊疗限制 t on a.代码 like t.诊疗编码 || '%' and t.频次限制 like '%每年%'
 --and regexp_instr(t.领域标识,'(康复|物理|中医)') > 0
 where a.机构编码 = 'H00000000000' and a.类别 not in ('西药费','成药费','草药费','材料费') 
 group by 机构编码, 身份证号, 门诊日期, 类别, 代码, 名称, 规格, 单位, 单价, to_char(日期,'YYYY'), to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 1))
@@ -145,7 +145,7 @@ having sum(频次) > to_number(regexp_substr(频次限制, '[0-9]+(\.[0-9]+)?', 
 
 create index 索引_临时_计费项目 on 临时_计费项目 (机构编码,身份证号,年度);
 
-insert into 应用_问题线索 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
+insert into 线索_问题项目 (就医来源, 项目来源, 线索来源, 问题类型, 问题情形, 问题性质, 问题数量, 问题金额,
     机构编码, 机构名称, 科室名称, 医生姓名, 身份证号, 姓名, 性别, 年龄, 就医日期, 就医天数, 疾病诊断, 分类, 代码,
     名称, 规格, 单位, 单价, 人次, 天数, 频次, 剂量, 数量, 医疗金额, 医保支付, 支付日期)
 select distinct
@@ -162,7 +162,7 @@ select distinct
 from(
 select a.机构编码, a.机构名称, a.门诊科室, a.门诊医生, a.身份证号, a.姓名, a.性别, a.年龄, a.门诊日期, a.门诊天数, a.疾病诊断,
     b.类别, b.代码,b.名称, b.规格, b.单位, b.单价, b.日期, sum(b.诊次) 人次, sum(b.天数) 天数, sum(b.频次) 频次, sum(b.剂量) 剂量, sum(b.数量) 数量, sum(b.金额) 金额, sum(b.列支) 列支
-from 统计_门诊诊次 a inner join 统计_门诊频度 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期
+from 模型_门诊诊次 a inner join 模型_门诊频度 b on a.机构编码 = b.机构编码 and a.身份证号 = b.身份证号 and a.门诊日期 = b.门诊日期
     and a.机构编码 = 'H00000000000' and b.类别 not in ('西药费','成药费','草药费','材料费') 
 group by a.机构编码, a.机构名称, a.门诊科室, a.门诊医生, a.身份证号, a.姓名, a.性别, a.年龄, a.门诊日期, a.门诊天数, a.疾病诊断,
     b.类别, b.代码, b.名称, b.规格, b.单位, b.单价, b.日期

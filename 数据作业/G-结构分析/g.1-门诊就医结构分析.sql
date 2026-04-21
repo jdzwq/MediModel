@@ -6,7 +6,7 @@
 
 -----------------------------------------------------------------------------------------------
 --脚本：确定就医年度分段
-select distinct to_char(门诊日期,'YYYY') 就医年度  from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+select distinct to_char(门诊日期,'YYYY') 就医年度  from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 order by 就医年度
 
 -----------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ select
     机构名称,
     to_char(门诊日期,'YYYY') 就医年度,
     count(distinct 身份证号) as 就医人数 
-from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 group by 机构编码,机构名称,to_char(门诊日期,'YYYY')
 order by 就医年度;
 
@@ -32,7 +32,7 @@ select
     to_char(门诊日期,'YYYY') 就医年度,
     险种类别,
     count(distinct 身份证号) as 就医人数 
-from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 group by 机构编码,机构名称,to_char(门诊日期,'YYYY'),险种类别
 order by 险种类别，就医年度;
 
@@ -46,7 +46,7 @@ select
     to_char(门诊日期,'YYYY') 就医年度,
     持证类别,
     count(distinct 身份证号) as 就医人数 
-from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 group by 机构编码,机构名称,to_char(门诊日期,'YYYY'),持证类别
 order by 持证类别，就医年度;
 
@@ -60,7 +60,7 @@ select
     to_char(门诊日期,'YYYY') 就医年度,
     性别,
     count(distinct 身份证号) as 就医人数 
-from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 group by 机构编码,机构名称,to_char(门诊日期,'YYYY'),性别
 order by 性别，就医年度;
 
@@ -74,7 +74,7 @@ select
     to_char(门诊日期,'YYYY') 就医年度,
     年龄,
     count(distinct 身份证号) as 就医人数 
-from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 group by 机构编码,机构名称,to_char(门诊日期,'YYYY'),年龄
 order by 年龄，就医年度;
 
@@ -92,7 +92,7 @@ select
     sum(医疗金额) as 医疗金额,
     sum(基金支付) as 基金支付,
     sum(个账支付) as 个账支付
-from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 group by 机构编码,机构名称,to_char(门诊日期,'YYYY')
 order by 就医年度;
 
@@ -105,7 +105,7 @@ select
     机构名称,
     to_char(门诊日期,'YYYY') 就医年度,
     sum(医疗金额) as 医疗金额
-from 统计_门诊诊次 where 机构编码 = 'H00000000000'
+from 模型_门诊诊次 where 机构编码 = 'H00000000000'
 group by 机构编码,机构名称,to_char(门诊日期,'YYYY')
 order by 就医年度;
 
@@ -131,7 +131,7 @@ select
     sum(草药金额) 草药金额,
     sum(材料金额) 材料金额,
     sum(其他金额) 其他金额
-from 统计_门诊结构 where 机构编码 = 'H00000000000'
+from 模型_门诊结构 where 机构编码 = 'H00000000000'
 group by 机构编码,机构名称,to_char(门诊日期,'YYYY')
 order by 就医年度;
 
